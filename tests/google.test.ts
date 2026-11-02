@@ -1,4 +1,2 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {isGoogleSuperAdmin} from '../lib/google.ts';
-const token=(method:string)=>'header.'+Buffer.from(JSON.stringify({amr:[{method}]})).toString('base64url')+'.signature';
-const user={email:'saadcr224@gmail.com',email_confirmed_at:'2026-01-01',app_metadata:{provider:'google'},identities:[{provider:'google',identity_data:{email:'saadcr224@gmail.com',email_verified:true}}]};
-test('approved verified Google session only',()=>{assert.equal(isGoogleSuperAdmin(user,token('oauth')),true);assert.equal(isGoogleSuperAdmin(user,token('password')),false);assert.equal(isGoogleSuperAdmin({...user,email:'other@gmail.com'},token('oauth')),false);assert.equal(isGoogleSuperAdmin({...user,email_confirmed_at:null},token('oauth')),false);assert.equal(isGoogleSuperAdmin({...user,identities:[]},token('oauth')),false);assert.equal(isGoogleSuperAdmin(user,'malformed'),false);});
+import {test} from 'node:test';import assert from 'node:assert/strict';import {isGoogleSuperAdmin,SUPER_ADMIN_EMAIL} from '../lib/google.ts';
+test('removed Google account cannot authenticate',()=>{assert.equal(SUPER_ADMIN_EMAIL,'');assert.equal(isGoogleSuperAdmin({email:'someone@example.com'},'token'),false);});

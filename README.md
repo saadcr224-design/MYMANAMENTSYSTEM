@@ -12,13 +12,11 @@ Set these server environment variables for the intended deployment:
 
 Run `sql/schema.sql` once in an empty Supabase project. The connected project already has this schema; do not rerun CREATE statements there.
 
-## Super-admin Google login
+## Google sign-in status
 
-The first page offers Continue with Google. Only `saadcr224@gmail.com` is approved. Password login for this account is disabled. The first successful verified Google sign-in creates its school membership automatically.
+Google super-admin sign-in is disabled at the owner's request. No super-admin email is authorized. The previous automatic Google redirect has been removed. School data remains protected by Supabase authentication and membership checks.
 
-Supabase Authentication → URL Configuration must allow `https://mymanamentsystem-5xfp.vercel.app/auth/callback`. Google Cloud must use `https://umtuosuhqsdmvalliagn.supabase.co/auth/v1/callback` as its authorized redirect URI. Configure credentials privately in Supabase Google provider settings.
-
-The login uses PKCE and an HttpOnly verifier cookie. No client secret or service-role key is included in the app. New Supabase projects must also apply `sql/google-superadmin.sql`.
+To configure Google again, its OAuth client must authorize `https://umtuosuhqsdmvalliagn.supabase.co/auth/v1/callback`, and Supabase redirect URLs must allow `https://mymanamentsystem-5xfp.vercel.app/auth/callback`. A new approved account and database enrollment policy are also required.
 
 ## School admin login
 
@@ -37,7 +35,7 @@ Financial writes use optimistic database versions: concurrent edits are rejected
 
 ## Current limits
 
-Admin creation from inside the application, offline write/sync, scheduled background invoice generation, automatic fee-rate increases and backup restore are not implemented. The Super Admin Setup screen displays the single approved Google identity. This deployment does not claim those features are active.
+Admin creation from inside the application, offline write/sync, scheduled background invoice generation, automatic fee-rate increases and backup restore are not implemented. The Super Admin Setup screen reports that no Google account is configured. This deployment does not claim those features are active.
 
 A ledger is stored as one versioned JSON document per admin. This simplifies atomic writes and tenant isolation, but large multi-user school deployments should split invoices/payments into normalized tables and add pagination before scaling. Administrators control their own ledger via RLS; the server validates normal UI writes.
 
