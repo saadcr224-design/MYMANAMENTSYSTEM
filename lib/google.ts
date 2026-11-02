@@ -1,0 +1,3 @@
+export const SUPER_ADMIN_EMAIL='saadcr224@gmail.com';
+// Only call with a token already verified by Supabase /auth/v1/user.
+export function isGoogleSuperAdmin(user:any,verifiedToken:string){try{const claims=JSON.parse(Buffer.from(verifiedToken.split('.')[1],'base64url').toString());return user.email?.toLowerCase()===SUPER_ADMIN_EMAIL&&!!user.email_confirmed_at&&user.app_metadata?.provider==='google'&&claims.amr?.some((entry:any)=>entry.method==='oauth')&&user.identities?.some((identity:any)=>identity.provider==='google'&&identity.identity_data?.email?.toLowerCase()===SUPER_ADMIN_EMAIL&&identity.identity_data?.email_verified===true);}catch{return false}}
