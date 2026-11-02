@@ -1,0 +1,4 @@
+// Network only: never cache authenticated school records or payment requests.
+self.addEventListener('install',()=>self.skipWaiting());
+self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',event=>{if(event.request.mode==='navigate')event.respondWith(fetch(event.request).catch(()=>new Response('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SchoolLedger — Offline</title><body style="background:#101329;color:white;font:18px system-ui;padding:40px"><h1>You are offline</h1><p>Connect to the internet to sign in and access school records.</p><button onclick="location.reload()">Try again</button></body></html>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}})))});
