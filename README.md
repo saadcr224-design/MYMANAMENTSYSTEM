@@ -1,77 +1,41 @@
-# MYMANAMENTSYSTEM
+# SchoolLedger — Next.js + Supabase
 
-SchoolLedger school fee management application. Complete source of the current private Sites deployment, imported into this repository.
+Glassy school fee management dashboard, deployable on Vercel with Node 22.
 
-## Implemented
+## Deploy
 
-- Responsive glass dashboard with student totals, fee collections, outstanding balances, charts, recent admissions, and fee follow-ups.
-- Student registration, editing, search, class/section filters, promotion, and fee history.
-- Excel `.xlsx` / `.xls` import, column mapping, validation, previews, Student ID upserts, exports, and error reports.
-- Monthly invoices, admission fees, additional charges, fixed monthly concessions, full and partial payments, and overpayment protection.
-- PDF challans and payment receipts; collection, pending-fee, and other financial reports with Excel/PDF exports.
-- PKR currency and an April–March financial year.
-- Two empty Super Admin email setup fields with validation and persistent storage.
+Import this repository in Vercel. Framework: Next.js. Root directory: repository root.
+The checked-in vercel.json runs `npm ci --ignore-scripts` and `npm run build`.
+Set these server environment variables for the intended deployment:
+- SUPABASE_URL
+- SUPABASE_PUBLISHABLE_KEY (publishable/anon key only; no service-role key needed)
 
-## Current limitations
+Run `sql/schema.sql` once in an empty Supabase project. The connected project already has this schema; do not rerun CREATE statements there.
 
-The two Super Admin fields save configuration only. Google sign-in, admin username/password login, isolated admin workspaces, offline operation/sync, and automatic monthly tuition-rate increases are **not implemented**. Current-month invoices are generated when the workspace loads; this does not increase the tuition rate or provide unattended scheduled billing. Full financial backup restore, temporary discounts, and late-fee automation are also pending.
+## First admin login
 
-The production app currently relies on the owner-private **Sites access gate**. Its shared data endpoints do not implement independent application login or tenant isolation. Do not expose this Worker publicly on another host until authentication and authorization are implemented there. Local development is for loopback use only.
+1. Open Supabase Authentication → Users → Add user. Create an email/password user and confirm the email. Do not share passwords in chat or commit them.
+2. In Supabase SQL Editor grant that user's UUID access:
+   `insert into public.sl_members(user_id) values ('UUID-FROM-AUTH-USERS');`
+3. Sign in to the application using that email and password.
 
-## Stack
+Each provisioned user has a separate ledger. There is no public sign-up in the application, no default password, and no privileged API key in the frontend. Memberships can only be granted by the database administrator. Remove membership to revoke app access. Sessions last at most one hour; sign in again when expired.
 
-React 19, TypeScript, Vinext/Vite, Cloudflare Workers, Cloudflare D1, Drizzle migrations, SheetJS, jsPDF, and Lucide icons. This is a full-stack Worker app, not a static GitHub Pages website.
+## Included
 
-## Local setup
+Students, Excel import/column mapping/upsert by student ID, fee generation, payment recording, remaining balances, printable PDF downloads, fee structures, discounts, reports, settings and JSON backup export. New workspaces start empty. Existing Cloudflare records are NOT automatically migrated.
 
-Use Node.js 22.13+ and the pinned package manager `pnpm@11.25.0`.
+Financial writes use optimistic database versions: concurrent edits are rejected with a reload/retry message instead of silently overwriting another edit. Payments are stored in integer paisa. Historical invoices retain their billed rates. The current month's invoices are generated on an authenticated data load; prior months can be generated explicitly.
 
-```sh
-git clone https://github.com/saadcr224-design/MYMANAMENTSYSTEM.git
-cd MYMANAMENTSYSTEM
-npm install --global pnpm@11.25.0
-pnpm install --frozen-lockfile
-pnpm build
-```
+## Current limits
 
-The build produces `dist/server/wrangler.json`. For a fresh local database, apply the migrations once, in order:
+Google super-admin login, admin creation from inside the application, offline write/sync, scheduled background invoice generation, automatic fee-rate increases and backup restore are not implemented. The Super Admin Setup screen reports that Google setup is unavailable. This deployment does not claim those features are active.
 
-```sh
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_equal_shen.sql
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_colossal_omega_red.sql
-pnpm dev
-```
+A ledger is stored as one versioned JSON document per admin. This simplifies atomic writes and tenant isolation, but large multi-user school deployments should split invoices/payments into normalized tables and add pagination before scaling. Administrators control their own ledger via RLS; the server validates normal UI writes.
 
-Open the local address printed by the development server. An empty database shows clearly labeled sample data. Choose **Set up my school** to start using real records.
+## Development
 
-For a built local preview, use `pnpm start` after building and applying migrations. Generated database state is separate from production and excluded from Git.
+Node 22: `npm ci --ignore-scripts`, copy `.env.example` to `.env.local`, configure Supabase, then `npm run dev`.
+`npm test` runs payment/import invariant tests. `npm run build` produces a standard Next.js build.
 
-## Checks
-
-```sh
-pnpm exec tsc --noEmit
-node tests/api.test.mjs
-node tests/access-setup.test.mjs
-pnpm build
-```
-
-Tests cover a 1,000-student import, ID-based updates, repeat invoice generation, partial/full payments, duplicate-payment and overpayment protection, and account-setup validation. They use an in-memory SQLite database and do not modify production records.
-
-## Project layout
-
-- `app/`: interface, styles, API routes, and Sites authentication helpers.
-- `db/` and `drizzle/`: database schema and versioned migrations.
-- `worker/`: Cloudflare Worker entry point.
-- `components/`, `hooks/`, and `lib/`: UI and integration support.
-- `scripts/`: installation, development, build, and Sites integration helpers.
-- `tests/`: database/API tests.
-- `.openai/hosting.json`: existing Sites deployment identity and database binding.
-- `docs/STARTER.md`: retained framework and hosting documentation.
-
-## Deployment and transferred content
-
-The original private deployment remains at https://school-ledger-pkr.saadcr224.chatgpt.site. Uploading the source to GitHub does not move its hosted D1 database, change access permissions, or automatically configure deployment from this repository.
-
-All tracked application source, dependencies/lockfile, migrations, tests, and build configuration are included. Installed dependencies, generated builds, credentials, local caches, and live student/payment data are not committed.
-
-Source snapshot: `6528b43c742d1c40d8c894fd9c3871ff8a9098c0` from the existing Sites source repository. The destination repository's existing license is retained; bundled third-party notices remain alongside their files.
+The former Cloudflare Worker, D1, Vinext and Sites build scripts have been removed. The earlier Sites app remains separately hosted and its data has not been modified.
