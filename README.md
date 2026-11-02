@@ -12,7 +12,15 @@ Set these server environment variables for the intended deployment:
 
 Run `sql/schema.sql` once in an empty Supabase project. The connected project already has this schema; do not rerun CREATE statements there.
 
-## First admin login
+## Super-admin Google login
+
+The first page offers Continue with Google. Only `saadcr224@gmail.com` is approved. Password login for this account is disabled. The first successful verified Google sign-in creates its school membership automatically.
+
+Supabase Authentication → URL Configuration must allow `https://mymanamentsystem-5xfp.vercel.app/auth/callback`. Google Cloud must use `https://umtuosuhqsdmvalliagn.supabase.co/auth/v1/callback` as its authorized redirect URI. Configure credentials privately in Supabase Google provider settings.
+
+The login uses PKCE and an HttpOnly verifier cookie. No client secret or service-role key is included in the app. New Supabase projects must also apply `sql/google-superadmin.sql`.
+
+## School admin login
 
 1. Open Supabase Authentication → Users → Add user. Create an email/password user and confirm the email. Do not share passwords in chat or commit them.
 2. In Supabase SQL Editor grant that user's UUID access:
@@ -29,7 +37,7 @@ Financial writes use optimistic database versions: concurrent edits are rejected
 
 ## Current limits
 
-Google super-admin login, admin creation from inside the application, offline write/sync, scheduled background invoice generation, automatic fee-rate increases and backup restore are not implemented. The Super Admin Setup screen reports that Google setup is unavailable. This deployment does not claim those features are active.
+Admin creation from inside the application, offline write/sync, scheduled background invoice generation, automatic fee-rate increases and backup restore are not implemented. The Super Admin Setup screen displays the single approved Google identity. This deployment does not claim those features are active.
 
 A ledger is stored as one versioned JSON document per admin. This simplifies atomic writes and tenant isolation, but large multi-user school deployments should split invoices/payments into normalized tables and add pagination before scaling. Administrators control their own ledger via RLS; the server validates normal UI writes.
 
